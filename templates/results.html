@@ -1,0 +1,44 @@
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Números Pseudoaleatorios</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+  <h1>Resultados</h1>
+
+  {% if result['ri'] is defined and result['ri']|length > 0 %}
+    
+    <div class="result-container">
+      <div class="image-container">
+        <img src="data:image/png;base64,{{ plot_url }}" alt="Gráfico">
+        <button type="button" onclick="window.history.back();" class="back-button">Volver</button>
+      </div>
+
+      <table border="1">
+        <thead>
+          <tr>
+            <th>Iteración</th>
+            <th>Xi</th>
+            <th>Ri</th>
+            <th>Ni</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in range(result['ri']|length) %}
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>{{ result['xi'][i] if result['xi'] is defined else 'N/A' }}</td>
+              <td>{{ result['ri'][i] }}</td>
+              <td>{{ result['ni'][i] }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <br>
+
+  {% else %}
+    <p>No se encontraron resultados.</p>
+  {% endif %}
+

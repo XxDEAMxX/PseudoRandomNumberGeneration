@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Números Pseudoaleatorios</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <main>   
+        <div class="sidebar">
+            <h2>Generador de Números Pseudoaleatorios</h2>
+            <br>
+            <label name="method" id="method" for="method">Métodos:</label>
+            <ul>
+                <li><button onclick="selectMethod('LinearCongruential')">Congruencia Lineal</button></li>
+                <li><button onclick="selectMethod('MiddleSquare')">Cuadrado Medio</button></li>
+                <li><button onclick="selectMethod('MultiplicativeCongruential')">Congruencial Multiplicativo</button></li>
+                <li><button onclick="selectMethod('NormalInvDistribution')">Distribución Normal Inversa</button></li>
+                <li><button onclick="selectMethod('UniformDistribution')">Distribución Uniforme</button></li>
+            </ul>
+        </div> 
+        <form method="POST" action="/" id="methodForm" style="display: none;">
+            <input type="hidden" name="selected_method" id="selected_method">
+            <fieldset id="section-standard" style="display: none;">
+                <legend>Parámetros Generales</legend>
+                <div id="standard-fields" class="form-grid">
+                    <div id="xo-section" class="form-group">
+                        <label for="xo">Semilla (xo):</label>
+                        <input type="number" name="xo" id="xo" required>
+                    </div>
+
+                    <div id="iterations-section" class="form-group">
+                        <label for="iterations">Iteraciones:</label>
+                        <input type="number" name="iterations" id="iterations" min="1" required>
+                    </div>
+                </div>
+
+                <div id="min-max-fields" >
+                    <div class="form-group">
+                        <label for="min">Valor mínimo:</label>
+                        <input type="number" name="min" id="min" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="max">Valor máximo:</label>
+                        <input type="number" name="max" id="max" required>
+                    </div>
+                </div>
+
+                <div id="LinearCongruentialParams" class="form-grid" style="display: none;">
+                    <div class="form-group">
+                        <label for="k">Multiplicador (k):</label>
+                        <input type="number" name="k" id="k" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="c">Incremento (c):</label>
+                        <input type="number" name="c" id="c" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="g">Módulo (g):</label>
+                        <input type="number" name="g" id="g" required>
+                    </div>
+                </div>
+
+                <div id="MultiplicativeCongruentialParams" class="form-grid" style="display: none;">
+                    <div class="form-group">
+                        <label for="k2">Multiplicador (k):</label>
+                        <input type="number" name="k2" id="k2" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="g2">Módulo (g):</label>
+                        <input type="number" name="g2" id="g2" required>
+                    </div>
+                </div>
+
+                <div id="middleSquareParams" class="form-grid" style="display: none;">
+                </div>
+            </fieldset>
+
+            <fieldset id="section-distribution" style="display: none;">
+                <legend>Parámetros específicos de la distribución</legend>
+
+                <div id="normalParams" class="method-fields form-grid" style="display: none;">
+                    <div class="form-group">
+                        <label for="mean">Media:</label>
+                        <input type="number" name="mean" id="mean" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="std_dev">Desviación estándar:</label>
+                        <input type="number" name="std_dev" id="std_dev" required>
+                    </div>
+                </div>
+
+                <div id="uniformParams" class="method-fields form-grid" style="display: none;">
+                    <div class="form-group">
+                        <label for="min2">Valor mínimo:</label>
+                        <input type="number" name="min2" id="min2" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="max2">Valor máximo:</label>
+                        <input type="number" name="max2" id="max2" required>
+                    </div>
+                </div>
+            </fieldset>
+
+            <input type="submit" value="Generar">
+        </form>
+    </main>
+
+    <script>
+    function selectMethod(method) {
+        console.log(method);
+        document.getElementById('method').value = method;
+        document.getElementById('methodForm').style.display = 'block';
+        document.getElementById('section-standard').style.display = 'block';
+        updateForm();
+    }
+    function updateForm() {
+        const method = document.getElementById('method').value;
+        console.log(method);
+        const form = document.getElementById('methodForm');
+        const standardSection = document.getElementById('section-standard');
+        const LinearCongruentialParams = document.getElementById('LinearCongruentialParams');
+        const MultiplicativeCongruentialParams = document.getElementById('MultiplicativeCongruentialParams');
+        const middleSquareParams = document.getElementById('middleSquareParams');
+        const distributionSection = document.getElementById('section-distribution');
+        const standardFields = document.getElementById('standard-fields');
+        const minMaxFields = document.getElementById('min-max-fields');
+        const inputs = form.querySelectorAll('input');
+
+        standardSection.style.display = 'none';
+        LinearCongruentialParams.style.display = 'none';
+        MultiplicativeCongruentialParams.style.display = 'none';
+        middleSquareParams.style.display = 'none';
+        distributionSection.style.display = 'none';
+        minMaxFields.style.display = 'none';
+
+        inputs.forEach(input => {
+            input.removeAttribute('required');
+        });
+
+        if (method === "") {
+            form.style.display = 'none';
+        } else {
+            form.style.display = 'grid';
+        }
+
+        if (method === 'LinearCongruential' || method === 'MultiplicativeCongruential' || method === 'MiddleSquare') {
+            standardSection.style.display = 'block';
+            form.style.gridTemplateColumns = '1fr';
+            standardFields.style.gridTemplateColumns = '1fr 1fr';
+            minMaxFields.style.display = 'grid';
+            
+            document.getElementById('xo').setAttribute('required', 'true');
+            document.getElementById('iterations').setAttribute('required', 'true');
+            document.getElementById('min').setAttribute('required', 'true');
+            document.getElementById('max').setAttribute('required', 'true');
+
+            if (method === 'LinearCongruential') {
+                LinearCongruentialParams.style.display = 'grid';
+                LinearCongruentialParams.style.gridTemplateColumns = '1fr 1fr';
+                document.getElementById('k').setAttribute('required', 'true');
+                document.getElementById('c').setAttribute('required', 'true');
+                document.getElementById('g').setAttribute('required', 'true');
+            } else if (method === 'MultiplicativeCongruential') {
+                MultiplicativeCongruentialParams.style.display = 'grid';
+                MultiplicativeCongruentialParams.style.gridTemplateColumns = '1fr 1fr'; 
+                document.getElementById('k2').setAttribute('required', 'true');
+                document.getElementById('g2').setAttribute('required', 'true');
+            } else if (method === 'MiddleSquare') {
+                middleSquareParams.style.display = 'block';
+            }
+        }
+
+        if (method === 'NormalInvDistribution' || method === 'UniformDistribution') {
+            standardSection.style.display = 'block';
+            minMaxFields.style.display = 'none';
+            distributionSection.style.display = 'block';
+            form.style.gridTemplateColumns = '1fr 1fr';
+            standardFields.style.gridTemplateColumns = '1fr';
+            LinearCongruentialParams.style.display = 'grid';
+            LinearCongruentialParams.style.gridTemplateColumns = '1fr';
+            document.getElementById('xo').setAttribute('required', 'true');
+            document.getElementById('iterations').setAttribute('required', 'true');
+            document.getElementById('k').setAttribute('required', 'true');
+            document.getElementById('c').setAttribute('required', 'true');
+            document.getElementById('g').setAttribute('required', 'true');
+            if (method === 'NormalInvDistribution') {
+                document.getElementById('normalParams').style.display = 'block';
+                document.getElementById('uniformParams').style.display = 'none';
+                document.getElementById('mean').setAttribute('required', 'true');
+                document.getElementById('std_dev').setAttribute('required', 'true');
+
+            } else if (method === 'UniformDistribution') {
+                document.getElementById('uniformParams').style.display = 'block';
+                document.getElementById('normalParams').style.display = 'none';
+                document.getElementById('min2').setAttribute('required', 'true');
+                document.getElementById('max2').setAttribute('required', 'true');
+            }
+        }
+    }
+
+    document.getElementById('methodForm').addEventListener('submit', function(event) {
+        const selectedMethod = document.getElementById('method').value;
+        document.getElementById('selected_method').value = selectedMethod;
+    });
+
+    document.getElementById('methodForm').onsubmit = function() {
+        setTimeout(function() {
+        document.getElementById('methodForm').reset();
+        }, 100);
+    };
+    </script>
+    </body>
+</html>
